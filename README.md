@@ -1,2 +1,130 @@
-# slack-alert-agent
-Service that checks your email for slack notification emails and calls you in case of any. To wake you up)
+# Slack Alert Agent
+
+A serverless Python agent that monitors your Gmail for Slack notifications and calls your phone (via Telegram) when new alerts arrive. Designed to run on **GitHub Actions** for free 24/7 monitoring.
+
+---
+
+## 🚀 Features
+
+*   **Smart Time Window**: Only alerts you during your configured working hours (e.g., Mon-Fri, 9-6).
+*   **Real Phone Calls**: Uses CallMeBot to ring your Telegram, waking you up for urgent issues.
+*   **Gmail Integration**: Uses the official Gmail API (OAuth 2.0) for secure and reliable email scanning.
+*   **Deduplication**: Remembers what it has already alerted on (persisted via cache), so you don't get spammed.
+*   **Zero Cost**: Runs entirely on GitHub Actions' free tier.
+
+---
+
+## 🛠️ Quick Start
+
+### 1. Prerequisites
+*   Python 3.11+
+*   A Google Cloud Project (for Gmail API)
+*   A Telegram account
+
+### 2. Setup (Local)
+1.  **Clone the repo**:
+    ```bash
+    git clone https://github.com/yourusername/slack-alert-agent.git
+    cd slack-alert-agent
+    ```
+
+2.  **Create environment**:
+    ```bash
+    # Using Conda
+    conda create -p .\.conda python=3.11 -y
+    .\.conda\python.exe -m pip install -r requirements.txt
+    ```
+
+3.  **Configure Environment**:
+    Copy the sample env file and edit it:
+    ```bash
+    cp .env.sample .env
+    ```
+
+4.  **Edit `config.yaml`**:
+    Adjust your working hours and timezone:
+    ```yaml
+    working_hours:
+      timezone: "Europe/Kyiv"
+      start: "09:00"
+      end: "18:00"
+    ```
+
+---
+
+## 🔑 Application Setup Guides
+
+### Part A: Gmail API Setup (Step-by-Step)
+You need to generate OAuth credentials to allow the agent to read your emails.
+
+1.  **Create a Project**: Go to [Google Cloud Console](https://console.cloud.google.com/) and create a new project (e.g., "Slack Alert Agent").
+2.  **Enable Gmail API**:
+    *   Go to **APIs & Services > Library**.
+    *   Search for "Gmail API" and click **Enable**.
+3.  **Configure Consent Screen**:
+    *   Go to **APIs & Services > OAuth consent screen**.
+    *   Select **External** (unless you have a Google Workspace org, then Internal is fine).
+    *   Fill in app name and email.
+    *   **Scopes**: Add `https://www.googleapis.com/auth/gmail.modify`.
+    *   **Test Users**: Add your own Gmail address. **Important**: Without this, you cannot auth.
+4.  **Create Credentials**:
+    *   Go to **APIs & Services > Credentials**.
+    *   Click **Create Credentials > OAuth client ID**.
+    *   Application type: **Desktop app**.
+    *   Name: "Local Client".
+    *   Click **Create**.
+    *   Copy the **Client ID** and **Client Secret** into your `.env` file.
+5.  **Get Refresh Token**:
+    *   Currently, the easiest way is to use a helper script or the Google OAuth playground.
+    *   **Quick Tip**: You can use [Google OAuth Playground](https://developers.google.com/oauthplayground/).
+        *   Select "Gmail API v1" > `https://www.googleapis.com/auth/gmail.modify`.
+        *   Click "Authorize APIs".
+        *   Exchange authorization code for tokens.
+        *   Copy the **Refresh Token** into your `.env`.
+
+### Part B: Telegram CallMeBot Setup
+1.  Open Telegram and search for **@CallMeBot_txtmsg_bot** (or similar based on current CallMeBot docs).
+2.  Follow instructions to allow calls.
+3.  Simply putting your `@username` in `.env` is usually sufficient for the free tier.
+
+---
+
+## 🏃‍♂️ Running Locally
+
+Once `.env` is filled:
+
+```powershell
+.\.conda\python.exe agent/main.py
+```
+
+---
+
+## ☁️ Deploying to GitHub Actions
+
+1.  **Push your code** to a private GitHub repository.
+2.  **Set Secrets**:
+    Go to **Settings > Secrets and variables > Actions > New repository secret**. Add:
+    *   `GMAIL_CLIENT_ID`
+    *   `GMAIL_CLIENT_SECRET`
+    *   `GMAIL_REFRESH_TOKEN`
+    *   `TELEGRAM_USERNAME`
+3.  **Enable Workflow**:
+    Go to the **Actions** tab and enable the "Slack Alert Agent" workflow.
+4.  It will now run every 5 minutes automatically!
+
+---
+
+## 🏗️ Architecture
+
+```text
+slack-alert-agent/
+├── agent/
+│   ├── config/       # Config loader
+│   ├── email/        # Gmail client implementation
+│   ├── notifier/     # Notification logic
+│   ├── state/        # Deduplication state
+│   ├── time/         # Time window logic
+│   └── main.py       # Entry point
+├── config.yaml       # User settings
+└── .github/          # CI/CD
+```
