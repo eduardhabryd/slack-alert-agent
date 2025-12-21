@@ -1,0 +1,53 @@
+name: Slack Alert Agent
+
+on:
+  schedule:
+    # Run every 5 minutes (adjust as needed)
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    # Restore state from cache (using prefix match for latest)
+    - name: Restore State
+      uses: actions/cache/restore@v3
+      with:
+        path: state.json
+        key: agent-state-${{ github.run_id }} # Only matches current run (forced miss logic)
+        restore-keys: |
+          agent-state-
+
+    - name: Install Dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Run Agent
+      env:
+        GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+        GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+        GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+        TELEGRAM_USERNAME: ${{ secrets.TELEGRAM_USERNAME }}
+        GMAIL_CREDENTIALS_JSON: ${{ secrets.GMAIL_CREDENTIALS_JSON }} # Alternative if used
+      run: |
+        # Ensure python path includes current directory
+        export PYTHONPATH=$PYTHONPATH:.
+        python agent/main.py
+
+    # Save new state to cache (always save, creating a new key)
+    - name: Save State
+      if: always()
+      uses: actions/cache/save@v3
+      with:
+        path: state.json
+        key: agent-state-${{ github.run_id }}
