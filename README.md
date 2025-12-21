@@ -87,6 +87,44 @@ You need to generate OAuth credentials to allow the agent to read your emails.
 2.  Follow instructions to allow calls.
 3.  Simply putting your `@username` in `.env` is usually sufficient for the free tier.
 
+### Part C: Pushover Setup (Robust Alternative)
+1.  **Create Account**: Sign up at [pushover.net](https://pushover.net/).
+2.  **Get User Key**: On your dashboard, copy your **User Key**.
+3.  **Create Application**:
+    *   Click "Create an Application/API Token".
+    *   Name: "Slack Alert Agent".
+    *   Type: Application.
+    *   Copy the **API Token/Key**.
+4.  **Add to `.env`**:
+    *   `PUSHOVER_USER_KEY`
+    *   `PUSHOVER_API_TOKEN`
+5.  **Install App**: Download Pushover on your phone and log in.
+
+---
+
+## ⚙️ Advanced Configuration (Notifications)
+
+You can choose how you want to be notified in `config.yaml`.
+
+### Sequential Fallback (Recommended)
+Tries to call you via Telegram first; if that fails (e.g., CallMeBot is down), it sends a high-priority Pushover alert.
+
+```yaml
+notifications:
+  strategy:
+    order: ["telegram_call", "pushover"]
+    stop_after_success: true
+```
+
+### Pushover Only
+If you prefer app alerts over phone calls.
+
+```yaml
+notifications:
+  strategy:
+    order: ["pushover"]
+```
+
 ---
 
 ## 🏃‍♂️ Running Locally

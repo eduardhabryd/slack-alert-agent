@@ -29,6 +29,15 @@ def load_config(path: str = CONFIG_PATH) -> AppConfig:
     # Telegram Username override
     env_tg_user = os.getenv("TELEGRAM_USERNAME")
     if env_tg_user:
-        config.telegram.call.username = env_tg_user
+        config.notifications.telegram.call.username = env_tg_user
+
+    # Pushover overrides
+    env_pushover_user = os.getenv("PUSHOVER_USER_KEY")
+    if env_pushover_user:
+        config.notifications.pushover.user_key = env_pushover_user
+        
+    env_pushover_token = os.getenv("PUSHOVER_API_TOKEN")
+    if env_pushover_token:
+        config.notifications.pushover.api_token = env_pushover_token
 
     return config

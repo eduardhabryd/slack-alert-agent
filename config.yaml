@@ -1,31 +1,32 @@
 working_hours:
-  # Enable or disable the time window check
   enabled: true
-  # Timezone for the check (e.g., Europe/Kyiv, UTC, US/Pacific)
   timezone: "Europe/Kyiv"
-  # Start time in 24h format (HH:MM)
   start: "11:00"
-  # End time in 24h format (HH:MM)
   end: "17:00"
-  # Days to run (0=Monday, 6=Sunday). Defaults to Mon-Fri if omitted.
   days: [0, 1, 2, 3, 4]
 
 email:
-  # Email provider to use (currently only 'gmail' is supported)
   provider: "gmail"
-  # The sender email address to look for Slack notifications from
   slack_sender: "notification@slack.com"
-  # Optional: Subject line keywords to filter by (if needed in future)
-  # subject_keywords: ["urgent", "mention"]
 
-telegram:
-  call:
-    # Enable CallMeBot calls
+notifications:
+  strategy:
+    # Order to attempt notifications.
+    # Options: "telegram_call", "pushover"
+    order: ["telegram_call", "pushover"]
+    # If true, stops sending to other channels once one succeeds.
+    # Set to false if you want ALL configured channels to fire.
+    stop_after_success: true
+
+  telegram:
+    call:
+      enabled: true
+      message: "Urgent Slack notification detected."
+
+  pushover:
     enabled: true
-    # The message CallMeBot will read out (keep it short)
-    message: "Urgent Slack notification detected. Please check your messages."
-    # Optional: Username (can also be passed via env var TELEGRAM_USERNAME)
-    # username: "@your_handle" 
-
+    # 0=Normal, 1=High, 2=Emergency (Critical Alert - bypasses mute)
+    priority: 2
+    
 logging:
   level: "INFO"

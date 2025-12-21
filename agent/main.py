@@ -4,9 +4,9 @@ from agent.config.loader import load_config
 from agent.time.window import TimeWindow
 from agent.email.gmail_client import GmailClient
 from agent.email.filters import SlackFilter
-from agent.notifier.telegram_call import TelegramCallNotifier
+from agent.notifier.manager import NotificationManager
 from agent.state.store import StateStore
-from agent.logging.setup import setup_logging
+from agent.logs.setup import setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ def main():
         
         # Helper objects
         slack_filter = SlackFilter(config.email)
-        notifier = TelegramCallNotifier(config.telegram.call)
+        notifier_manager = NotificationManager(config.notifications)
         state = StateStore()
 
         # 5. Fetch and Filter
@@ -64,16 +64,18 @@ def main():
         logger.info(f"Found {len(new_alerts)} new notifications.")
         
         # 7. Notify
-        message = config.telegram.call.message
-        if notifier.notify(message):
-            logger.info("Notification sent successfully.")
+        # Notification logic is decoupled into manager
+        message = config.notifications.telegram.call.message
+        
+        if notifier_manager.notify(message):
+            logger.info("Notification strategy completed successfully.")
             # Update state logic: Mark as processed
             state.add_processed([n.email_id for n in new_alerts])
             
             # Optional: Mark emails as read in Gmail functionality
             # gmail.mark_as_read([n.email_id for n in new_alerts])
         else:
-            logger.error("Failed to send notification. State not updated.")
+            logger.error("Failed to send notification via any configured channel. State not updated.")
             sys.exit(1)
 
     except Exception as e:
