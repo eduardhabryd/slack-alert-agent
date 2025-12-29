@@ -98,7 +98,7 @@ Use a free service like **[Cron-Job.org](https://cron-job.org)** to trigger your
 2.  **Create Cron Job**:
     *   Sign up at Cron-Job.org.
     *   Create a NEW job.
-    *   **URL**: `https://api.github.com/repos/YOUR_USERNAME/slack-alert-agent/actions/workflows/agent.yml/dispatches`
+    *   **URL**: `https://api.github.com/repos/eduardhabryd/slack-alert-agent/actions/workflows/agent.yml/dispatches`
     *   **Execution Method**: `POST`
     *   **Headers**:
         *   `Accept: application/vnd.github.v3+json`
