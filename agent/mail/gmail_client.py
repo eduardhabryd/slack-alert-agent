@@ -10,7 +10,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
-from agent.email.client import EmailClient, EmailMessage
+from agent.mail.client import EmailClient, EmailMessage
 
 logger = logging.getLogger(__name__)
 
@@ -49,13 +49,22 @@ class GmailClient(EmailClient):
             # Fallback for local dev - try to load token.json
             if os.path.exists('token.json'):
                 logger.info("Loading credentials from token.json")
-                creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+                try:
+                    creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+                except Exception as e:
+                    logger.error(f"Failed to load token.json: {e}")
             else:
                  # Local interactive flow (only if strictly needed, usually avoiding in agent)
                  logger.warning("No credentials found in env or token.json.")
 
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+        if creds and not creds.valid and creds.refresh_token:
+            logger.info("Credentials invalid or expired. Refreshing...")
+            try:
+                creds.refresh(Request())
+                logger.info("Refresh completed.")
+            except Exception as e:
+                logger.error(f"Refresh failed: {e}")
+                # We don't raise here, we let the check below handle it (or maybe we should raise)
 
         if not creds or not creds.valid:
             raise Exception("Could not authenticate with Gmail. Check credentials.")
@@ -63,11 +72,13 @@ class GmailClient(EmailClient):
         self.service = build('gmail', 'v1', credentials=creds)
         logger.info("Successfully connected to Gmail API.")
 
-    def get_unread_emails(self, sender_filter: Optional[str] = None) -> List[EmailMessage]:
+    def get_emails(self, sender_filter: Optional[str] = None, only_unread: bool = False) -> List[EmailMessage]:
         if not self.service:
             raise Exception("Client not connected. Call connect() first.")
 
-        query = 'is:unread'
+        query = 'label:INBOX'
+        if only_unread:
+            query += ' is:unread'
         if sender_filter:
             query += f' from:{sender_filter}'
 

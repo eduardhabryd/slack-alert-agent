@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from agent.email.client import EmailMessage
+from agent.mail.client import EmailMessage
 from agent.config.schema import EmailConfig
 import logging
 

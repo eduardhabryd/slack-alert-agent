@@ -1,12 +1,17 @@
 import logging
 import sys
+import os
+
+# Add project root to sys.path to allow running directly
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from agent.config.loader import load_config
 from agent.time.window import TimeWindow
-from agent.email.gmail_client import GmailClient
-from agent.email.filters import SlackFilter
-from agent.notifier.telegram_call import TelegramCallNotifier
+from agent.mail.gmail_client import GmailClient
+from agent.mail.filters import SlackFilter
+from agent.notifier.manager import NotificationManager
 from agent.state.store import StateStore
-from agent.logging.setup import setup_logging
+from agent.logs.setup import setup_logging
 
 logger = logging.getLogger(__name__)
 
@@ -37,43 +42,35 @@ def main():
         
         # Helper objects
         slack_filter = SlackFilter(config.email)
-        notifier = TelegramCallNotifier(config.telegram.call)
+        notifier_manager = NotificationManager(config.notifications)
         state = StateStore()
 
         # 5. Fetch and Filter
-        # Fetching unread emails from the configured sender
-        emails = gmail.get_unread_emails(sender_filter=config.email.slack_sender)
+        # Fetching ALL emails from the configured sender (persistent alert mode)
+        logger.info("Scanning for Slack notifications in Inbox (Persistent Mode)...")
+        emails = gmail.get_emails(sender_filter=config.email.slack_sender, only_unread=False)
         slack_notifications = slack_filter.filter_and_parse(emails)
 
         if not slack_notifications:
-            logger.info("No Slack notifications found.")
+            logger.info("No Slack notifications found in Inbox.")
             sys.exit(0)
 
-        # 6. Deduplication
-        new_alerts = []
-        for notif in slack_notifications:
-            if not state.is_processed(notif.email_id):
-                 new_alerts.append(notif)
-            else:
-                logger.debug(f"Skipping processed email {notif.email_id}")
-
-        if not new_alerts:
-            logger.info("No new unique notifications.")
-            sys.exit(0)
-
-        logger.info(f"Found {len(new_alerts)} new notifications.")
+        # 6. Persistent Alerting Logic
+        # We alert if ANY matching email is found, regardless of state history.
+        # This fulfills: "only stop notifications if email from slack is deleted"
+        new_alerts = slack_notifications
+        logger.info(f"Found {len(new_alerts)} active Slack notifications. Triggering alert.")
         
         # 7. Notify
-        message = config.telegram.call.message
-        if notifier.notify(message):
-            logger.info("Notification sent successfully.")
-            # Update state logic: Mark as processed
-            state.add_processed([n.email_id for n in new_alerts])
-            
-            # Optional: Mark emails as read in Gmail functionality
-            # gmail.mark_as_read([n.email_id for n in new_alerts])
+        message = config.notifications.telegram.call.message
+        
+        if notifier_manager.notify(message):
+            logger.info("Notification strategy completed successfully.")
+            # In persistent mode, we don't need to update state because we want to alert again next time
+            # if the email is still there.
+            pass
         else:
-            logger.error("Failed to send notification. State not updated.")
+            logger.error("Failed to send notification via any configured channel.")
             sys.exit(1)
 
     except Exception as e:
