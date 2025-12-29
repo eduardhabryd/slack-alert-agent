@@ -25,9 +25,9 @@ class PushoverNotifier(Notifier):
             "user": self.config.user_key,
             "message": message,
             "priority": self.config.priority,
-            "retry": 30, # Required for priority 2 (emergency)
-            "expire": 3600, # Required for priority 2 (emergency)
-            "sound": "siren" # Optional, can be configurable later
+            "retry": self.config.retry, 
+            "expire": self.config.expire,
+            "sound": self.config.sound
         }
 
         try:

@@ -1,13 +1,22 @@
 working_hours:
+  # Enable or disable the time window check
   enabled: true
+  # Timezone for the check (e.g., Europe/Kyiv, UTC, US/Pacific)
   timezone: "Europe/Kyiv"
+  # Start time in 24h format (HH:MM)
   start: "11:00"
+  # End time in 24h format (HH:MM)
   end: "17:00"
+  # Days to run (0=Monday, 6=Sunday). Defaults to Mon-Fri if omitted.
   days: [0, 1, 2, 3, 4]
 
 email:
+  # Email provider to use (currently only 'gmail' is supported)
   provider: "gmail"
+  # The sender email address to look for Slack notifications from
   slack_sender: "notification@slack.com"
+  # Optional: Subject line keywords to filter by (if needed in future)
+  # subject_keywords: ["urgent", "mention"]
 
 notifications:
   strategy:
@@ -16,17 +25,29 @@ notifications:
     order: ["telegram_call", "pushover"]
     # If true, stops sending to other channels once one succeeds.
     # Set to false if you want ALL configured channels to fire.
-    stop_after_success: true
+    stop_after_success: false
 
   telegram:
     call:
-      enabled: true
-      message: "Urgent Slack notification detected."
+      # Enable CallMeBot calls
+      enabled: false
+      # The message CallMeBot will read out (keep it short)
+      message: "Urgent Slack notification detected. Please check your messages."
+      # Optional: Username (can also be passed via env var TELEGRAM_USERNAME)
+      # username: "@your_handle" 
 
   pushover:
     enabled: true
     # 0=Normal, 1=High, 2=Emergency (Critical Alert - bypasses mute)
     priority: 2
-    
+    # Retry interval in seconds (minimum 30)
+    retry: 30
+    # Stop retrying after duration in seconds (default 1h)
+    expire: 7200
+    # Sound (options: pushover, bike, bugle, cosmic, siren, alien, persistent, etc.)
+    # 'persistent' is a long alarm-like sound.
+    sound: "persistent"
+
+
 logging:
   level: "INFO"

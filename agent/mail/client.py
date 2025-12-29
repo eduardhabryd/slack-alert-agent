@@ -22,9 +22,9 @@ class EmailClient(ABC):
         pass
 
     @abstractmethod
-    def get_unread_emails(self, sender_filter: Optional[str] = None) -> List[EmailMessage]:
+    def get_emails(self, sender_filter: Optional[str] = None, only_unread: bool = False) -> List[EmailMessage]:
         """
-        Fetch unread emails, optionally filtered by sender.
+        Fetch emails, optionally filtered by sender and read status.
         Should return a list of generic EmailMessage objects.
         """
         pass

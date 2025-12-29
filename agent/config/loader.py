@@ -39,5 +39,14 @@ def load_config(path: str = CONFIG_PATH) -> AppConfig:
     env_pushover_token = os.getenv("PUSHOVER_API_TOKEN")
     if env_pushover_token:
         config.notifications.pushover.api_token = env_pushover_token
+        
+    # Working Hours overrides
+    env_start_hours = os.getenv("WORKING_HOURS_START")
+    if env_start_hours:
+        config.working_hours.start = env_start_hours
+        
+    env_end_hours = os.getenv("WORKING_HOURS_END")
+    if env_end_hours:
+        config.working_hours.end = env_end_hours
 
     return config

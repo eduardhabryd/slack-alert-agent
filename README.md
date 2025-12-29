@@ -104,7 +104,17 @@ You need to generate OAuth credentials to allow the agent to read your emails.
 
 ## ⚙️ Advanced Configuration (Notifications)
 
-You can choose how you want to be notified in `config.yaml`.
+You can choose how you want to be notified.
+
+### 3. Configure Notifiers
+The agent supports **sequential fallback** and **broadcast** strategies. By default, it acts as a persistent alarm.
+
+*   **Pushover (Recommended)**: Set `priority: 2` and `sound: persistent` in `config.yaml` to receive loud, repeating alerts that bypass silent mode.
+*   **Env Var Overrides**: You can override working hours in `.env` without changing `config.yaml`:
+    ```
+    WORKING_HOURS_START=09:00
+    WORKING_HOURS_END=17:00
+    ```
 
 ### Sequential Fallback (Recommended)
 Tries to call you via Telegram first; if that fails (e.g., CallMeBot is down), it sends a high-priority Pushover alert.

@@ -31,6 +31,9 @@ class PushoverConfig(BaseModel):
     user_key: Optional[str] = None # Can be overridden by env var
     api_token: Optional[str] = None # Can be overridden by env var
     priority: int = 1 # 0=Normal, 1=High, 2=Emergency (Critical Alert)
+    retry: int = 30 # Seconds between retries (min 30)
+    expire: int = 3600 # Seconds until retry stops (max 86400)
+    sound: str = "pushover" # Sound to play
 
 class NotificationStrategyConfig(BaseModel):
     """Configuration for notification behavior."""
