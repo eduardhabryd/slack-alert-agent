@@ -79,14 +79,35 @@ You need to generate OAuth credentials to allow the agent to read your emails.
     *   **Quick Tip**: You can use [Google OAuth Playground](https://developers.google.com/oauthplayground/).
         *   Select "Gmail API v1" > `https://www.googleapis.com/auth/gmail.modify`.
         *   Click "Authorize APIs".
-        *   Exchange authorization code for tokens.
-        *   Copy the **Refresh Token** into your `.env`.
+    *   **Quick Tip**: You can use [Google OAuth Playground](        *   Copy the **Refresh Token** into your `.env`.
 
 ### Part B: Telegram CallMeBot Setup
 1.  Open Telegram and search for **@CallMeBot_txtmsg_bot** (or similar based on current CallMeBot docs).
 2.  Follow instructions to allow calls.
 3.  Simply putting your `@username` in `.env` is usually sufficient for the free tier.
 
+## ⏱️ Reliability: Making it run every 5 minutes (Guaranteed)
+GitHub Actions `schedule` is unreliable and can be delayed by 20-60 minutes. For an alert bot, you need reliable timing.
+
+**Solution: Isolate the Trigger**
+Use a free service like **[Cron-Job.org](https://cron-job.org)** to trigger your workflow via the GitHub API.
+
+1.  **Generate a GitHub Token**:
+    *   Go to GitHub Settings > Developer Settings > Personal access tokens > Tokens (classic).
+    *   Generate new token > Scopes: `repo` (nothing else needed) > Copy it.
+2.  **Create Cron Job**:
+    *   Sign up at Cron-Job.org.
+    *   Create a NEW job.
+    *   **URL**: `https://api.github.com/repos/YOUR_USERNAME/slack-alert-agent/actions/workflows/agent.yml/dispatches`
+    *   **Execution Method**: `POST`
+    *   **Headers**:
+        *   `Accept: application/vnd.github.v3+json`
+        *   `Authorization: Bearer YOUR_GITHUB_TOKEN`
+        *   `User-Agent: CronJob`
+    *   **Body (JSON)**: `{"ref":"main"}`
+    *   **Schedule**: Every 5 minutes.
+
+Now Cron-Job.org will force GitHub to run your script exactly on time!
 ### Part C: Pushover Setup (Robust Alternative)
 1.  **Create Account**: Sign up at [pushover.net](https://pushover.net/).
 2.  **Get User Key**: On your dashboard, copy your **User Key**.
