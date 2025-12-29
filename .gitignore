@@ -210,3 +210,4 @@ __marimo__/
 .conda/
 state.json
 token.json
+credentials.json
