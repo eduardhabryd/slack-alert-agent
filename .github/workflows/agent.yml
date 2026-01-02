@@ -1,9 +1,6 @@
 name: Slack Alert Agent
 
 on:
-  schedule:
-    # Run every 5 minutes (adjust as needed)
-    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
