@@ -1,6 +1,6 @@
 # Slack Alert Agent
 
-A serverless Python agent that monitors your Gmail for Slack notifications and calls your phone (via Telegram) when new alerts arrive. Designed to run on **GitHub Actions** for free 24/7 monitoring.
+A serverless Python agent that monitors your Gmail for Slack notifications and calls your phone (via Telegram) when new alerts arrive. Designed to run on **GitHub Actions** via **Cron-Job.org** triggers.
 
 ---
 
@@ -86,11 +86,9 @@ You need to generate OAuth credentials to allow the agent to read your emails.
 2.  Follow instructions to allow calls.
 3.  Simply putting your `@username` in `.env` is usually sufficient for the free tier.
 
-## ⏱️ Reliability: Making it run every 5 minutes (Guaranteed)
-GitHub Actions `schedule` is unreliable and can be delayed by 20-60 minutes. For an alert bot, you need reliable timing.
+## ⏱️ Scheduling: Running every 5 minutes
 
-**Solution: Isolate the Trigger**
-Use a free service like **[Cron-Job.org](https://cron-job.org)** to trigger your workflow via the GitHub API.
+GitHub Actions' built-in schedule is unreliable. Use **[Cron-Job.org](https://cron-job.org)** to trigger your workflow reliably via the GitHub API.
 
 1.  **Generate a GitHub Token**:
     *   Go to GitHub Settings > Developer Settings > Personal access tokens > Tokens (classic).
@@ -98,7 +96,7 @@ Use a free service like **[Cron-Job.org](https://cron-job.org)** to trigger your
 2.  **Create Cron Job**:
     *   Sign up at Cron-Job.org.
     *   Create a NEW job.
-    *   **URL**: `https://api.github.com/repos/eduardhabryd/slack-alert-agent/actions/workflows/agent.yml/dispatches`
+    *   **URL**: `https://api.github.com/repos/YOUR_USERNAME/slack-alert-agent/actions/workflows/agent.yml/dispatches` (Replace `YOUR_USERNAME` with your actual username)
     *   **Execution Method**: `POST`
     *   **Headers**:
         *   `Accept: application/vnd.github.v3+json`
@@ -179,7 +177,7 @@ Once `.env` is filled:
     *   `TELEGRAM_USERNAME`
 3.  **Enable Workflow**:
     Go to the **Actions** tab and enable the "Slack Alert Agent" workflow.
-4.  It will now run every 5 minutes automatically!
+4.  **Set up Cron-Job.org**: Follow the "Scheduling" section above to start the agent.
 
 ---
 
