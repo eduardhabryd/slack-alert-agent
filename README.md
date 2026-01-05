@@ -1,4 +1,4 @@
-# Slack Alert Agent
+# Slack Alert Agent ++++++ 
 
 A serverless Python agent that monitors your Gmail for Slack notifications and calls your phone (via Telegram) when new alerts arrive. Designed to run on **GitHub Actions** for free 24/7 monitoring.
 
