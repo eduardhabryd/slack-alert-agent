@@ -211,3 +211,7 @@ __marimo__/
 state.json
 token.json
 credentials.json
+
+# Local Tests
+test_pushover.py
+chrome_profile/

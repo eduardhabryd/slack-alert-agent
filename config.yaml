@@ -1,4 +1,6 @@
 working_hours:
+  # Mode: 'api' (Slack Session Token - Recommended) or 'email' (Gmail Parsing)
+  mode: "api"
   # Enable or disable the time window check
   enabled: true
   # Timezone for the check (e.g., Europe/Kyiv, UTC, US/Pacific)
@@ -9,6 +11,11 @@ working_hours:
   end: "17:00"
   # Days to run (0=Monday, 6=Sunday). Defaults to Mon-Fri if omitted.
   days: [0, 1, 2, 3, 4]
+
+slack:
+  workspace_url: ${SLACK_WORKSPACE_URL} # Loaded from env
+  token: ${SLACK_TOKEN}
+  cookie: ${SLACK_COOKIE}
 
 email:
   # Email provider to use (currently only 'gmail' is supported)

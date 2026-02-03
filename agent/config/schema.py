@@ -52,9 +52,16 @@ class LoggingConfig(BaseModel):
     """Configuration for logging."""
     level: str = "INFO"
 
+class SlackConfig(BaseModel):
+    workspace_url: str
+    token: Optional[str] = None
+    cookie: Optional[str] = None
+
 class AppConfig(BaseModel):
     """Root configuration model."""
     working_hours: TimeWindowConfig = Field(default_factory=TimeWindowConfig)
     email: EmailConfig = Field(default_factory=EmailConfig)
     notifications: NotificationConfig = Field(default_factory=NotificationConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
+    slack: Optional[SlackConfig] = None
+    mode: str = "api"

@@ -21,6 +21,28 @@ def load_config(path: str = CONFIG_PATH) -> AppConfig:
         raw_config = yaml.safe_load(f) or {}
 
     # Validate against schema
+    # We can't validate fully yet if we depend on env vars for some fields that are missing in yaml
+    # So we might need to inject env vars BEFORE validation or make them optional in schema and validate later.
+    # For now, let's assume raw_config is partial and we patch it.
+    
+    # Patch in Slack secrets from Env if not in YAML
+    if raw_config.get("mode") == "api" or os.getenv("SLACK_TOKEN"):
+        if "slack" not in raw_config:
+            raw_config["slack"] = {}
+        
+        if os.getenv("SLACK_TOKEN"):
+            raw_config["slack"]["token"] = os.getenv("SLACK_TOKEN")
+        if os.getenv("SLACK_COOKIE"):
+            raw_config["slack"]["cookie"] = os.getenv("SLACK_COOKIE")
+        if os.getenv("SLACK_WORKSPACE_URL"):
+            raw_config["slack"]["workspace_url"] = os.getenv("SLACK_WORKSPACE_URL")
+            
+        # Ensure workspace_url is present if mode is api
+        if "workspace_url" not in raw_config["slack"]:
+             # This might fail validation if not provided in YAML or here. 
+             # We rely on user providing it in YAML for now.
+             pass
+
     config = AppConfig(**raw_config)
 
     # Apply environment variable overrides (common pattern for secrets)
