@@ -33,6 +33,9 @@ A serverless Python agent that monitors your Gmail for Slack notifications and c
     # Using Conda
     conda create -p .\.conda python=3.11 -y
     .\.conda\python.exe -m pip install -r requirements.txt
+    
+    # If using get_credentials.py (local only):
+    .\.conda\python.exe -m pip install -r requirements-dev.txt
     ```
 
 3.  **Configure Environment**:
