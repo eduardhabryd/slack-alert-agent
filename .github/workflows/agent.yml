@@ -36,6 +36,9 @@ jobs:
         GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
         PUSHOVER_USER_KEY: ${{ secrets.PUSHOVER_USER_KEY }}
         PUSHOVER_API_TOKEN: ${{ secrets.PUSHOVER_API_TOKEN }}
+        SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+        SLACK_COOKIE: ${{ secrets.SLACK_COOKIE }}
+        SLACK_WORKSPACE_URL: ${{ secrets.SLACK_WORKSPACE_URL }}
         WORKING_HOURS_START: ${{ vars.WORKING_HOURS_START }}  # Vars are better for non-secrets
         WORKING_HOURS_END: ${{ vars.WORKING_HOURS_END }}
       run: |
