@@ -215,3 +215,5 @@ credentials.json
 # Local Tests
 test_pushover.py
 chrome_profile/
+debug_meet.py
+debug_log.txt

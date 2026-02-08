@@ -57,11 +57,18 @@ class SlackConfig(BaseModel):
     token: Optional[str] = None
     cookie: Optional[str] = None
 
+class MeetConfig(BaseModel):
+    """Configuration for Google Meet monitoring."""
+    enabled: bool = True
+    sender: Optional[str] = None
+    subject_keywords: List[str] = Field(default_factory=lambda: ["invitation", "canceled", "updated"])
+
 class AppConfig(BaseModel):
     """Root configuration model."""
     working_hours: TimeWindowConfig = Field(default_factory=TimeWindowConfig)
-    email: EmailConfig = Field(default_factory=EmailConfig)
+    meet: MeetConfig = Field(default_factory=MeetConfig)
     notifications: NotificationConfig = Field(default_factory=NotificationConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     slack: Optional[SlackConfig] = None
-    mode: str = "api"
+    # mode field is deprecated/removed as we now run all enabled services
+

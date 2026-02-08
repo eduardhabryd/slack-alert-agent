@@ -10,6 +10,7 @@ class EmailMessage:
     sender: str
     subject: str
     snippet: str
+    body: str
     timestamp: datetime
     is_read: bool
 

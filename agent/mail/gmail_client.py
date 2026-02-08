@@ -105,11 +105,29 @@ class GmailClient(EmailClient):
             internal_date = int(msg_data.get('internalDate', 0))
             timestamp = datetime.fromtimestamp(internal_date / 1000.0)
             
+            # Extract body
+            body = ""
+            if 'parts' in payload:
+                for part in payload['parts']:
+                    if part['mimeType'] == 'text/plain':
+                        data = part['body'].get('data')
+                        if data:
+                            body += base64.urlsafe_b64decode(data).decode()
+            elif 'body' in payload:
+                data = payload['body'].get('data')
+                if data:
+                    body = base64.urlsafe_b64decode(data).decode()
+            
+            # Fallback to snippet if body is empty
+            if not body:
+                body = msg_data.get('snippet', '')
+
             email_objects.append(EmailMessage(
                 id=msg['id'],
                 sender=sender,
                 subject=subject,
                 snippet=msg_data.get('snippet', ''),
+                body=body,
                 timestamp=timestamp,
                 is_read=False
             ))
