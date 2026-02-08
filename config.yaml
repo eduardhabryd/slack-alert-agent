@@ -17,13 +17,11 @@ slack:
   token: ${SLACK_TOKEN}
   cookie: ${SLACK_COOKIE}
 
-email:
-  # Email provider to use (currently only 'gmail' is supported)
-  provider: "gmail"
-  # The sender email address to look for Slack notifications from
-  slack_sender: "notification@slack.com"
-  # Optional: Subject line keywords to filter by (if needed in future)
-  # subject_keywords: ["urgent", "mention"]
+meet:
+  # Enable Google Meet invitation monitoring
+  enabled: true
+  sender: null
+  subject_keywords: ["invitation", "canceled", "updated"]
 
 notifications:
   strategy:

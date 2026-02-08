@@ -71,4 +71,16 @@ def load_config(path: str = CONFIG_PATH) -> AppConfig:
     if env_end_hours:
         config.working_hours.end = env_end_hours
 
+    env_days = os.getenv("WORKING_HOURS_DAYS")
+    if env_days:
+        try:
+            # Parse comma-separated string: "0,1,2" -> [0, 1, 2]
+            days_list = [int(d.strip()) for d in env_days.split(",") if d.strip()]
+            config.working_hours.days = days_list
+        except ValueError:
+            # Fallback or log warning? For now just ignore invalid format to avoid crash, 
+            # or maybe logging warning is better but we don't have logger here easily accessible 
+            # (unless we import it). Main catches exceptions though.
+            raise ValueError(f"Invalid format for WORKING_HOURS_DAYS: {env_days}. Expected comma-separated integers (e.g., '0,1,2').")
+
     return config

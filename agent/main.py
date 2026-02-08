@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from agent.config.loader import load_config
 from agent.time.window import TimeWindow
 from agent.mail.gmail_client import GmailClient
-from agent.mail.filters import SlackFilter
+from agent.mail.filters import MeetFilter
 from agent.notifier.manager import NotificationManager
 from agent.state.store import StateStore
 from agent.logs.setup import setup_logging
@@ -41,72 +41,76 @@ def main():
         state = StateStore() # State might not be needed for API mode if we just want current status, but useful for dedup logic if we want to add it later.
                              # For now, API mode alerts on count > 0.
         
-        if config.mode == "api":
-            logger.info("Running in API (Session Token) mode.")
-            if not config.slack or not config.slack.token or not config.slack.cookie:
-                logger.error("Slack session configuration missing (token, cookie, or workspace_url).")
-                sys.exit(1)
-            
-            slack_client = SlackSessionClient(
-                token=config.slack.token, 
-                cookie=config.slack.cookie, 
-                workspace_url=config.slack.workspace_url
-            )
-            
+        messages_to_notify = []
+        
+        # --- 4a. Slack API Check ---
+        if config.slack and config.slack.token:
+            logger.info("Checking Slack API...")
             try:
+                slack_client = SlackSessionClient(
+                    token=config.slack.token, 
+                    cookie=config.slack.cookie, 
+                    workspace_url=config.slack.workspace_url
+                )
+                
                 result = slack_client.get_unread_count()
                 unread_count = result['unread_count']
                 logger.info(f"Unread Slack messages: {unread_count}")
                 
                 if unread_count > 0:
-                     # Alert!
-                     message = f"You have {unread_count} unread Slack messages."
-                     if notifier_manager.notify(message):
-                         logger.info("Notification sent.")
-                     else:
-                         logger.error("Failed to notify.")
-            
+                     messages_to_notify.append(f"You have {unread_count} unread Slack messages.")
             except PermissionError:
-                 logger.critical("Slack session token expired or invalid!")
-                 # Send critical alert via Pushover specifically
-                 # We construct a specific message for this
-                 notifier_manager.notify("CRITICAL: Slack session token expired. Please update credentials.")
-                 sys.exit(1)
-                 
-        else: # Default or 'email' mode
-            logger.info("Running in Email Parsing mode.")
-            # Connect to Email
-            gmail = GmailClient()
-            gmail.connect()
-            
-            # Helper objects
-            slack_filter = SlackFilter(config.email)
+                 logger.critical("Slack session token expired!")
+                 messages_to_notify.append("CRITICAL: Slack session token expired.")
+            except Exception as e:
+                logger.error(f"Slack check failed: {e}")
 
-            # 5. Fetch and Filter
-            # Fetching ALL emails from the configured sender (persistent alert mode)
-            logger.info("Scanning for Slack notifications in Inbox (Persistent Mode)...")
-            emails = gmail.get_emails(sender_filter=config.email.slack_sender, only_unread=False)
-            slack_notifications = slack_filter.filter_and_parse(emails)
+        # --- 4b. Google Meet Check ---
+        if config.meet and config.meet.enabled:
+            logger.info("Checking Gmail for Meet invitations...")
+            try:
+                gmail = GmailClient()
+                gmail.connect()
+                
+                meet_filter = MeetFilter(config.meet)
+                
+                # Fetching ALL emails from the configured sender (persistent alert mode)
+                emails = gmail.get_emails(sender_filter=config.meet.sender, only_unread=False)
+                meet_notifications = meet_filter.filter_and_parse(emails)
 
-            if not slack_notifications:
-                logger.info("No Slack notifications found in Inbox.")
-                sys.exit(0)
+                if meet_notifications:
+                    count = len(meet_notifications)
+                    logger.info(f"Found {count} Meet notifications.")
+                    # Create a summary message
+                    titles = [n.title for n in meet_notifications[:3]] # First 3
+                    msg = f"Found {count} Google Meet events: " + ", ".join(titles)
+                    messages_to_notify.append(msg)
+                else:
+                    logger.info("No Meet notifications found.")
+            except Exception as e:
+                logger.error(f"Meet check failed: {e}")
 
-            # 6. Persistent Alerting Logic
-            # We alert if ANY matching email is found, regardless of state history.
-            # This fulfills: "only stop notifications if email from slack is deleted"
-            new_alerts = slack_notifications
-            logger.info(f"Found {len(new_alerts)} active Slack notifications. Triggering alert.")
+        # --- 5. Notify ---
+        if messages_to_notify:
+            logger.info("Alerts triggered. Sending notifications...")
+            full_message = "\n".join(messages_to_notify)
             
-            # 7. Notify
-            message = config.notifications.telegram.call.message
+            # If we utilize the configured message from config, we might override it or append to it.
+            # config.notifications.telegram.call.message is usually static. 
+            # Let's try to use the dynamic message if the notifier supports it, 
+            # but for safety (CallMeBot limitation might be length), we keep it short or combine.
             
-            if notifier_manager.notify(message):
-                logger.info("Notification strategy completed successfully.")
-                pass
+            # Note: The original code used config.notifications.telegram.call.message. 
+            # We should probably pass the specific message to the notifier if possible.
+            # The NotificationManager.notify(message) signature accepts a string.
+            
+            if notifier_manager.notify(full_message):
+                logger.info("Notifications sent successfully.")
             else:
-                logger.error("Failed to send notification via any configured channel.")
+                logger.error("Failed to notify.")
                 sys.exit(1)
+        else:
+            logger.info("No alerts needed.")
 
     except Exception as e:
         logger.exception(f"Unexpected error: {e}")

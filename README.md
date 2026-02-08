@@ -8,8 +8,9 @@ A serverless Python agent that monitors your Gmail for Slack notifications and c
 
 *   **Smart Time Window**: Only alerts you during your configured working hours (e.g., Mon-Fri, 9-6).
 *   **Real Phone Calls**: Uses CallMeBot to ring your Telegram, waking you up for urgent issues.
-*   **Gmail Integration**: Uses the official Gmail API (OAuth 2.0) for secure and reliable email scanning.
-*   **Deduplication**: Remembers what it has already alerted on (persisted via cache), so you don't get spammed.
+*   **Gmail Integration**: Uses the official Gmail API (OAuth 2.0) for secure and reliable email scanning of **Google Meet invitations**.
+*   **Dual Monitoring**: Checks both Slack (via Session API) and Google Meet (via Gmail) simultaneously.
+*   **Persistent Alerting**: Continues to alert you until data is read/cleansed, ensuring you don't miss urgent notifications.
 *   **Zero Cost**: Runs entirely on GitHub Actions' free tier.
 
 ---
@@ -190,9 +191,9 @@ Once `.env` is filled:
 slack-alert-agent/
 ├── agent/
 │   ├── config/       # Config loader
-│   ├── email/        # Gmail client implementation
+│   ├── mail/         # Gmail client implementation
 │   ├── notifier/     # Notification logic
-│   ├── state/        # Deduplication state
+│   ├── state/        # Deduplication state (unused)
 │   ├── time/         # Time window logic
 │   └── main.py       # Entry point
 ├── config.yaml       # User settings
