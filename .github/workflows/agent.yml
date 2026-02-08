@@ -41,6 +41,7 @@ jobs:
         SLACK_WORKSPACE_URL: ${{ secrets.SLACK_WORKSPACE_URL }}
         WORKING_HOURS_START: ${{ vars.WORKING_HOURS_START }}  # Vars are better for non-secrets
         WORKING_HOURS_END: ${{ vars.WORKING_HOURS_END }}
+        WORKING_HOURS_DAYS: ${{ vars.WORKING_HOURS_DAYS }}
       run: |
         # Ensure python path includes current directory
         export PYTHONPATH=$PYTHONPATH:.

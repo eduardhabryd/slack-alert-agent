@@ -73,6 +73,8 @@ def load_config(path: str = CONFIG_PATH) -> AppConfig:
 
     env_days = os.getenv("WORKING_HOURS_DAYS")
     if env_days:
+        # Strip potential quotes (common in CI/CD secrets/vars)
+        env_days = env_days.strip("'").strip('"')
         try:
             # Parse comma-separated string: "0,1,2" -> [0, 1, 2]
             days_list = [int(d.strip()) for d in env_days.split(",") if d.strip()]
